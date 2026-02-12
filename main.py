@@ -446,3 +446,31 @@ class BatchSealEvent:
             "mixVariantId": self.mix_variant_id,
             "viscosityBandBps": self.viscosity_band_bps,
             "sealedAt": self.sealed_at,
+        }
+
+
+def event_topic_batch_sealed() -> str:
+    """Keccak256 of BatchSealed(uint256,uint64,uint88,uint40) for topic0 (placeholder hex)."""
+    sig = "BatchSealed(uint256,uint64,uint88,uint40)"
+    return "0x" + hashlib.sha256(sig.encode()).hexdigest()[:64]
+
+
+class ViscosityBandHistogram:
+    """Aggregates viscosity band distribution (for analytics)."""
+
+    def __init__(self, buckets: int = 20):
+        self.buckets = buckets
+        self._counts: list[int] = [0] * buckets
+
+    def record(self, bps: int) -> None:
+        idx = min(self.buckets - 1, max(0, (bps * self.buckets) // 10000))
+        self._counts[idx] += 1
+
+    def counts(self) -> list[int]:
+        return list(self._counts)
+
+
+def clamp_viscosity_bps(value: int) -> int:
+    """Clamp value to valid uint88 range for viscosity band."""
+    return max(0, min(2**88 - 1, value))
+
