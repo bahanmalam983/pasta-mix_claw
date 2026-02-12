@@ -306,3 +306,31 @@ class DispenserRegistry:
 
     def revoke(self, dispenser: str, caller: str) -> None:
         if caller != self.controller:
+            raise ValueError("PastaMixClaw__UnauthorizedDispenser")
+        self._authorized.discard(dispenser)
+
+    def is_authorized(self, dispenser: str) -> bool:
+        return dispenser in self._authorized
+
+
+def run_protocol_simulation(steps: int = 100) -> list[tuple[int, int, bool]]:
+    """Run a short simulation: reserve slots, seal some, report al-dente."""
+    proto = PastaMixClawProtocol(genesis_timestamp=1000)
+    sim = ClawDispenserSimulator(proto)
+    results: list[tuple[int, int, bool]] = []
+    for i in range(steps):
+        sim.advance_time(1)
+        slot = sim.dispense()
+        if i % 3 == 0:
+            bps = 4500 + (i % 1300)
+            sim.attest(slot, int(MixVariantId.SPAGHETTI_AL_PESTO), bps)
+            s = proto.get_slot(slot)
+            results.append((slot, s.viscosity_band_bps if s else 0, AlDenteChecker.is_al_dente(s.viscosity_band_bps) if s else False))
+    return results
+
+
+class ExtrusionTimestampValidator:
+    """Validates extrusion timestamps against genesis and epoch bounds."""
+
+    def __init__(self, genesis_ts: int, epoch_duration: int):
+        self.genesis_ts = genesis_ts
