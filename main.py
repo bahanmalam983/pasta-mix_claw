@@ -278,3 +278,31 @@ def protocol_version() -> str:
 
 def default_genesis_timestamp() -> int:
     return 0
+
+
+def max_viscosity_bps() -> int:
+    return 2**88 - 1
+
+
+def slot_index_epoch(slot_index: int, max_slots_per_epoch: int) -> int:
+    return slot_index // max_slots_per_epoch
+
+
+def slot_index_in_epoch(slot_index: int, max_slots_per_epoch: int) -> int:
+    return slot_index % max_slots_per_epoch
+
+
+class DispenserRegistry:
+    """Registry of authorized dispenser addresses (in-memory)."""
+
+    def __init__(self, controller: str = CLAW_CONTROLLER):
+        self.controller = controller
+        self._authorized: set[str] = {controller}
+
+    def authorize(self, dispenser: str, caller: str) -> None:
+        if caller != self.controller:
+            raise ValueError("PastaMixClaw__UnauthorizedDispenser")
+        self._authorized.add(dispenser)
+
+    def revoke(self, dispenser: str, caller: str) -> None:
+        if caller != self.controller:
