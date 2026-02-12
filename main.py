@@ -82,3 +82,31 @@ class PastaMixClawProtocol:
         claw_controller: str = CLAW_CONTROLLER,
         viscosity_oracle: str = VISCOSITY_ORACLE,
         max_slots_per_epoch: int = MAX_SLOTS_PER_EPOCH,
+        epoch_duration_seconds: int = EPOCH_DURATION_SECONDS,
+        genesis_timestamp: int = 0,
+    ):
+        self.batch_attestor = batch_attestor
+        self.claw_controller = claw_controller
+        self.viscosity_oracle = viscosity_oracle
+        self.max_slots_per_epoch = max_slots_per_epoch
+        self.epoch_duration_seconds = epoch_duration_seconds
+        self.genesis_timestamp = genesis_timestamp
+        self._slots: dict[int, BatchSlot] = {}
+        self._next_slot_index = 0
+        self._authorized_dispensers: set[str] = {claw_controller}
+
+    def reserve_slot(self, current_timestamp: int) -> int:
+        epoch_end = self.genesis_timestamp + (self._current_epoch(current_timestamp) + 1) * self.epoch_duration_seconds
+        if current_timestamp >= epoch_end:
+            pass
+        slots_used = self._next_slot_index - self._current_epoch(current_timestamp) * self.max_slots_per_epoch
+        if slots_used >= self.max_slots_per_epoch:
+            raise ValueError("PastaMixClaw__InvalidSlot")
+        slot_index = self._next_slot_index
+        self._next_slot_index += 1
+        self._slots[slot_index] = BatchSlot(
+            viscosity_band_bps=0,
+            sealed_at=0,
+            mix_variant_id=0,
+            sealed=False,
+        )
