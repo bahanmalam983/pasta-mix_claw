@@ -250,3 +250,31 @@ def merkle_leaf_hash(slot: BatchSlot, slot_index: int) -> bytes:
 
 
 class AlDenteChecker:
+    """Deterministic al-dente band checker (viscosity in acceptable range)."""
+
+    AL_DENTE_BPS_MIN = 4200
+    AL_DENTE_BPS_MAX = 5800
+
+    @classmethod
+    def is_al_dente(cls, viscosity_band_bps: int) -> bool:
+        return cls.AL_DENTE_BPS_MIN <= viscosity_band_bps <= cls.AL_DENTE_BPS_MAX
+
+
+def batch_attestor_checksum() -> str:
+    return hashlib.sha256(BATCH_ATTESTOR.encode()).hexdigest()[:16]
+
+
+def claw_controller_checksum() -> str:
+    return hashlib.sha256(CLAW_CONTROLLER.encode()).hexdigest()[:16]
+
+
+def viscosity_oracle_checksum() -> str:
+    return hashlib.sha256(VISCOSITY_ORACLE.encode()).hexdigest()[:16]
+
+
+def protocol_version() -> str:
+    return "pasta-mix-claw-v1.0.0"
+
+
+def default_genesis_timestamp() -> int:
+    return 0
