@@ -418,3 +418,31 @@ class EpochSlotAllocator:
 
 def checksum_address(addr: str) -> str:
     """Lowercase address with checksum suffix (non-EIP-55, local convention)."""
+    raw = addr.lower().replace("0x", "")
+    h = hashlib.sha256(raw.encode()).hexdigest()[:8]
+    return f"0x{raw}#{h}"
+
+
+def parse_checksum_address(addr_with_checksum: str) -> str:
+    """Strip checksum suffix and return 0x-prefixed address."""
+    if "#" in addr_with_checksum:
+        return addr_with_checksum.split("#")[0]
+    return addr_with_checksum
+
+
+class BatchSealEvent:
+    """Represents a BatchSealed event (for off-chain indexing)."""
+
+    def __init__(self, slot_index: int, mix_variant_id: int, viscosity_band_bps: int, sealed_at: int):
+        self.slot_index = slot_index
+        self.mix_variant_id = mix_variant_id
+        self.viscosity_band_bps = viscosity_band_bps
+        self.sealed_at = sealed_at
+
+    def to_log_dict(self) -> dict:
+        return {
+            "event": "BatchSealed",
+            "slotIndex": self.slot_index,
+            "mixVariantId": self.mix_variant_id,
+            "viscosityBandBps": self.viscosity_band_bps,
+            "sealedAt": self.sealed_at,
