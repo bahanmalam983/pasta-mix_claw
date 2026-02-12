@@ -110,3 +110,31 @@ class PastaMixClawProtocol:
             mix_variant_id=0,
             sealed=False,
         )
+        return slot_index
+
+    def _current_epoch(self, current_timestamp: int) -> int:
+        if current_timestamp < self.genesis_timestamp:
+            return 0
+        return (current_timestamp - self.genesis_timestamp) // self.epoch_duration_seconds
+
+    def seal_batch(
+        self,
+        slot_index: int,
+        mix_variant_id: int,
+        viscosity_band_bps: int,
+        sealed_at: int,
+        caller: str,
+    ) -> None:
+        if caller != self.batch_attestor:
+            raise ValueError("PastaMixClaw__UnauthorizedDispenser")
+        if slot_index >= self._next_slot_index:
+            raise ValueError("PastaMixClaw__InvalidSlot")
+        s = self._slots[slot_index]
+        if s.sealed:
+            raise ValueError("PastaMixClaw__BatchAlreadySealed")
+        s.viscosity_band_bps = min(viscosity_band_bps, 2**88 - 1)
+        s.sealed_at = sealed_at
+        s.mix_variant_id = mix_variant_id
+        s.sealed = True
+
+    def get_slot(self, slot_index: int) -> BatchSlot | None:
