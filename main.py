@@ -166,3 +166,31 @@ class ViscosityBandCalculator:
     """Computes viscosity band in bps from raw sensor-style inputs (deterministic)."""
 
     def __init__(self, oracle_address: str = VISCOSITY_ORACLE):
+        self.oracle_address = oracle_address
+        self._cache: dict[tuple[int, int], int] = {}
+
+    def band_bps(self, raw_value: int, temperature_celsius_x10: int) -> int:
+        key = (raw_value, temperature_celsius_x10)
+        if key in self._cache:
+            return self._cache[key]
+        normalized = (raw_value * (10000 - min(abs(temperature_celsius_x10 - 250), 1000))) // 10000
+        bps = min(10000, max(0, normalized % 10001))
+        self._cache[key] = bps
+        return bps
+
+
+class ClawDispenserSimulator:
+    """Simulates claw-dispenser mix selection for testing and scripting."""
+
+    def __init__(self, protocol: PastaMixClawProtocol):
+        self.protocol = protocol
+        self._timestamp = 0
+
+    def advance_time(self, seconds: int) -> None:
+        self._timestamp += seconds
+
+    def dispense(self, dispenser: str = CLAW_CONTROLLER) -> int:
+        if not self.protocol.is_dispenser_authorized(dispenser):
+            raise ValueError("PastaMixClaw__UnauthorizedDispenser")
+        return self.protocol.reserve_slot(self._timestamp)
+
