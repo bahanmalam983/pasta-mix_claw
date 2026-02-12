@@ -194,3 +194,31 @@ class ClawDispenserSimulator:
             raise ValueError("PastaMixClaw__UnauthorizedDispenser")
         return self.protocol.reserve_slot(self._timestamp)
 
+    def attest(
+        self,
+        slot_index: int,
+        mix_variant_id: int,
+        viscosity_band_bps: int,
+        attestor: str = BATCH_ATTESTOR,
+    ) -> None:
+        self.protocol.seal_batch(
+            slot_index,
+            mix_variant_id,
+            viscosity_band_bps,
+            self._timestamp,
+            attestor,
+        )
+
+
+def iter_mix_variants() -> Iterator[tuple[int, str]]:
+    for e in MixVariantId:
+        yield int(e), e.name
+
+
+def epoch_state(genesis_ts: int, epoch_duration: int, current_ts: int, epoch_index: int) -> EpochState:
+    start = genesis_ts + epoch_index * epoch_duration
+    return EpochState(
+        epoch_index=epoch_index,
+        start_ts=start,
+        end_ts=start + epoch_duration,
+        slots_used=0,
