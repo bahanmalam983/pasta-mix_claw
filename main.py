@@ -502,3 +502,31 @@ class PastaMixClawConfig:
             "viscosityOracle": self.viscosity_oracle,
             "maxSlotsPerEpoch": self.max_slots_per_epoch,
             "epochDurationSeconds": self.epoch_duration_seconds,
+        }
+
+
+def config_from_dict(d: dict) -> PastaMixClawConfig:
+    """Build config from dict (e.g. from chain)."""
+    c = PastaMixClawConfig()
+    c.batch_attestor = d.get("batchAttestor", BATCH_ATTESTOR)
+    c.claw_controller = d.get("clawController", CLAW_CONTROLLER)
+    c.viscosity_oracle = d.get("viscosityOracle", VISCOSITY_ORACLE)
+    c.max_slots_per_epoch = int(d.get("maxSlotsPerEpoch", MAX_SLOTS_PER_EPOCH))
+    c.epoch_duration_seconds = int(d.get("epochDurationSeconds", EPOCH_DURATION_SECONDS))
+    return c
+
+
+class SlotIterator:
+    """Iterate over sealed slots in a protocol instance."""
+
+    def __init__(self, protocol: PastaMixClawProtocol, start: int = 0, end: int | None = None):
+        self.protocol = protocol
+        self.start = start
+        self.end = end
+
+    def __iter__(self) -> Iterator[tuple[int, BatchSlot]]:
+        idx = self.start
+        while True:
+            if self.end is not None and idx >= self.end:
+                break
+            slot = self.protocol.get_slot(idx)
