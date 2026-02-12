@@ -558,3 +558,18 @@ def run_large_simulation(slots: int = 500) -> dict:
         bps = 4000 + (i * 7) % 2000
         sim.attest(slot_idx, int(MixVariantId.PENNE_ARRABBIATA), bps)
         hist.record(bps)
+        if AlDenteChecker.is_al_dente(bps):
+            al_dente_count += 1
+    return {
+        "total_slots": slots,
+        "al_dente_count": al_dente_count,
+        "histogram": hist.counts(),
+        "next_slot_index": proto._next_slot_index,
+    }
+
+
+if __name__ == "__main__":
+    for slot, bps, al_dente in run_protocol_simulation(24):
+        print(f"slot={slot} viscosity_bps={bps} al_dente={al_dente}")
+    stats = run_large_simulation(64)
+    print("stats", stats)
