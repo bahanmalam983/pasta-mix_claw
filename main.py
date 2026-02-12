@@ -334,3 +334,31 @@ class ExtrusionTimestampValidator:
 
     def __init__(self, genesis_ts: int, epoch_duration: int):
         self.genesis_ts = genesis_ts
+        self.epoch_duration = epoch_duration
+
+    def in_epoch(self, ts: int, epoch: int) -> bool:
+        start = self.genesis_ts + epoch * self.epoch_duration
+        return start <= ts < start + self.epoch_duration
+
+    def epoch_for_ts(self, ts: int) -> int:
+        if ts < self.genesis_ts:
+            return 0
+        return (ts - self.genesis_ts) // self.epoch_duration
+
+
+class MixVariantRegistry:
+    """Registry of mix variant IDs and metadata (name, default viscosity band)."""
+
+    _DEFAULTS: dict[int, tuple[str, int]] = {
+        int(MixVariantId.SPAGHETTI_AL_PESTO): ("Spaghetti Al Pesto", 4800),
+        int(MixVariantId.PENNE_ARRABBIATA): ("Penne Arrabbiata", 5200),
+        int(MixVariantId.FARFALLE_CREMA): ("Farfalle Crema", 4600),
+        int(MixVariantId.RIGATONI_CARBONARA): ("Rigatoni Carbonara", 5100),
+        int(MixVariantId.LINGUINE_AGLIO): ("Linguine Aglio", 4700),
+        int(MixVariantId.FUSILLI_POMODORO): ("Fusilli Pomodoro", 4900),
+        int(MixVariantId.TAGLIATELLE_FUNGHI): ("Tagliatelle Funghi", 5000),
+        int(MixVariantId.ORECCHIETTE_BROCCOLI): ("Orecchiette Broccoli", 4550),
+        int(MixVariantId.PAPPARDELLE_RAGU): ("Pappardelle Ragu", 5300),
+        int(MixVariantId.CONCHIGLIE_QUATTRO_FORMAGGI): ("Conchiglie Quattro Formaggi", 4750),
+    }
+
