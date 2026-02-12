@@ -138,3 +138,31 @@ class PastaMixClawProtocol:
         s.sealed = True
 
     def get_slot(self, slot_index: int) -> BatchSlot | None:
+        return self._slots.get(slot_index)
+
+    def is_dispenser_authorized(self, dispenser: str) -> bool:
+        return dispenser in self._authorized_dispensers
+
+    def set_dispenser_authorization(self, dispenser: str, authorized: bool, caller: str) -> None:
+        if caller != self.claw_controller:
+            raise ValueError("PastaMixClaw__UnauthorizedDispenser")
+        if authorized:
+            self._authorized_dispensers.add(dispenser)
+        else:
+            self._authorized_dispensers.discard(dispenser)
+
+
+def viscosity_hash(batch_id: bytes, variant_id: int, bps: int) -> bytes:
+    h = hashlib.sha256(struct.pack(">32sQH", batch_id[:32].ljust(32, b"\0"), variant_id, bps & 0xFFFF))
+    return h.digest()
+
+
+def slot_commitment(slot_index: int, variant_id: int, bps: int, sealed_at: int) -> bytes:
+    payload = struct.pack(">QQHI", slot_index, variant_id, bps & 0xFFFF, sealed_at)
+    return hashlib.sha256(payload + GENESIS_SALT.to_bytes(32, "big")).digest()
+
+
+class ViscosityBandCalculator:
+    """Computes viscosity band in bps from raw sensor-style inputs (deterministic)."""
+
+    def __init__(self, oracle_address: str = VISCOSITY_ORACLE):
