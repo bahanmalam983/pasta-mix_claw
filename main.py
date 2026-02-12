@@ -362,3 +362,31 @@ class MixVariantRegistry:
         int(MixVariantId.CONCHIGLIE_QUATTRO_FORMAGGI): ("Conchiglie Quattro Formaggi", 4750),
     }
 
+    @classmethod
+    def name(cls, variant_id: int) -> str:
+        return cls._DEFAULTS.get(variant_id, ("Unknown", 5000))[0]
+
+    @classmethod
+    def default_viscosity_bps(cls, variant_id: int) -> int:
+        return cls._DEFAULTS.get(variant_id, ("Unknown", 5000))[1]
+
+    @classmethod
+    def all_variants(cls) -> list[int]:
+        return list(cls._DEFAULTS.keys())
+
+
+def slot_abi_encode(slot: BatchSlot) -> list:
+    """Encode BatchSlot for ABI-like struct (e.g. for off-chain call simulation)."""
+    return [
+        slot.viscosity_band_bps,
+        slot.sealed_at,
+        slot.mix_variant_id,
+        slot.sealed,
+    ]
+
+
+def slot_abi_decode(data: list) -> BatchSlot:
+    """Decode ABI-like struct into BatchSlot."""
+    return BatchSlot(
+        viscosity_band_bps=int(data[0]),
+        sealed_at=int(data[1]),
