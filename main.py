@@ -530,3 +530,31 @@ class SlotIterator:
             if self.end is not None and idx >= self.end:
                 break
             slot = self.protocol.get_slot(idx)
+            if slot is None:
+                break
+            yield idx, slot
+            idx += 1
+
+
+def sealed_slots_count(protocol: PastaMixClawProtocol) -> int:
+    """Count how many slots are sealed (requires protocol to expose _slots or similar)."""
+    n = 0
+    for idx in range(protocol._next_slot_index):
+        s = protocol.get_slot(idx)
+        if s and s.sealed:
+            n += 1
+    return n
+
+
+def run_large_simulation(slots: int = 500) -> dict:
+    """Run a larger simulation and return stats."""
+    proto = PastaMixClawProtocol(genesis_timestamp=10000)
+    sim = ClawDispenserSimulator(proto)
+    hist = ViscosityBandHistogram(20)
+    al_dente_count = 0
+    for i in range(slots):
+        sim.advance_time(2)
+        slot_idx = sim.dispense()
+        bps = 4000 + (i * 7) % 2000
+        sim.attest(slot_idx, int(MixVariantId.PENNE_ARRABBIATA), bps)
+        hist.record(bps)
