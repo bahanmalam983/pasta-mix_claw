@@ -390,3 +390,31 @@ def slot_abi_decode(data: list) -> BatchSlot:
     return BatchSlot(
         viscosity_band_bps=int(data[0]),
         sealed_at=int(data[1]),
+        mix_variant_id=int(data[2]),
+        sealed=bool(data[3]),
+    )
+
+
+class EpochSlotAllocator:
+    """Tracks slot allocation within an epoch (mirrors on-chain slot cap)."""
+
+    def __init__(self, max_slots: int = MAX_SLOTS_PER_EPOCH):
+        self.max_slots = max_slots
+        self._allocated = 0
+
+    def can_allocate(self) -> bool:
+        return self._allocated < self.max_slots
+
+    def allocate(self) -> int:
+        if not self.can_allocate():
+            raise ValueError("PastaMixClaw__InvalidSlot")
+        idx = self._allocated
+        self._allocated += 1
+        return idx
+
+    def reset(self) -> None:
+        self._allocated = 0
+
+
+def checksum_address(addr: str) -> str:
+    """Lowercase address with checksum suffix (non-EIP-55, local convention)."""
