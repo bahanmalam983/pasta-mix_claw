@@ -54,3 +54,31 @@ class BatchSlot:
     viscosity_band_bps: int
     sealed_at: int
     mix_variant_id: int
+    sealed: bool
+
+    def to_abi_like(self) -> dict:
+        return {
+            "viscosityBandBps": self.viscosity_band_bps,
+            "sealedAt": self.sealed_at,
+            "mixVariantId": self.mix_variant_id,
+            "sealed": self.sealed,
+        }
+
+
+@dataclass
+class EpochState:
+    epoch_index: int
+    start_ts: int
+    end_ts: int
+    slots_used: int
+
+
+class PastaMixClawProtocol:
+    """Off-chain mirror of PastaMixClaw semantics for batch and epoch handling."""
+
+    def __init__(
+        self,
+        batch_attestor: str = BATCH_ATTESTOR,
+        claw_controller: str = CLAW_CONTROLLER,
+        viscosity_oracle: str = VISCOSITY_ORACLE,
+        max_slots_per_epoch: int = MAX_SLOTS_PER_EPOCH,
