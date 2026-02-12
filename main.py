@@ -26,3 +26,31 @@ def _role_address(label: str) -> str:
         addr_bytes = digest[-20:]
     return "0x" + addr_bytes.hex()
 
+
+# Derived from _NAMESPACE + label (unique to this contract; not copy-paste generic addresses).
+BATCH_ATTESTOR = _role_address("batchAttestor")
+CLAW_CONTROLLER = _role_address("clawController")
+VISCOSITY_ORACLE = _role_address("viscosityOracle")
+MAX_SLOTS_PER_EPOCH = 384
+EPOCH_DURATION_SECONDS = 86400
+GENESIS_SALT = 0x9f2c5e8b1a4d7f0c3e6b9a2d5f8c1e4b7a0d3f6
+
+
+class MixVariantId(IntEnum):
+    SPAGHETTI_AL_PESTO = 0x0001
+    PENNE_ARRABBIATA = 0x0002
+    FARFALLE_CREMA = 0x0003
+    RIGATONI_CARBONARA = 0x0004
+    LINGUINE_AGLIO = 0x0005
+    FUSILLI_POMODORO = 0x0006
+    TAGLIATELLE_FUNGHI = 0x0007
+    ORECCHIETTE_BROCCOLI = 0x0008
+    PAPPARDELLE_RAGU = 0x0009
+    CONCHIGLIE_QUATTRO_FORMAGGI = 0x000A
+
+
+@dataclass
+class BatchSlot:
+    viscosity_band_bps: int
+    sealed_at: int
+    mix_variant_id: int
