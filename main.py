@@ -222,3 +222,31 @@ def epoch_state(genesis_ts: int, epoch_duration: int, current_ts: int, epoch_ind
         start_ts=start,
         end_ts=start + epoch_duration,
         slots_used=0,
+    )
+
+
+def validate_viscosity_bps(value: int) -> bool:
+    return 0 <= value <= (2**88 - 1)
+
+
+def validate_mix_variant_id(value: int) -> bool:
+    return 0 <= value <= (2**64 - 1)
+
+
+def encode_slot_for_merkle(slot: BatchSlot, slot_index: int) -> bytes:
+    return struct.pack(
+        ">QHQIB",
+        slot_index,
+        slot.mix_variant_id,
+        slot.viscosity_band_bps,
+        slot.sealed_at,
+        1 if slot.sealed else 0,
+    )
+
+
+def merkle_leaf_hash(slot: BatchSlot, slot_index: int) -> bytes:
+    leaf = encode_slot_for_merkle(slot, slot_index)
+    return hashlib.sha256(b"PastaMixClaw:v1:" + leaf).digest()
+
+
+class AlDenteChecker:
