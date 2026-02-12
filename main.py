@@ -474,3 +474,31 @@ def clamp_viscosity_bps(value: int) -> int:
     """Clamp value to valid uint88 range for viscosity band."""
     return max(0, min(2**88 - 1, value))
 
+
+def clamp_sealed_at(value: int) -> int:
+    """Clamp value to valid uint40 range for timestamp."""
+    return max(0, min(2**40 - 1, value))
+
+
+def clamp_mix_variant_id(value: int) -> int:
+    """Clamp value to valid uint64 range."""
+    return max(0, min(2**64 - 1, value))
+
+
+class PastaMixClawConfig:
+    """Immutable config snapshot (matches constructor immutables)."""
+
+    def __init__(self):
+        self.batch_attestor = BATCH_ATTESTOR
+        self.claw_controller = CLAW_CONTROLLER
+        self.viscosity_oracle = VISCOSITY_ORACLE
+        self.max_slots_per_epoch = MAX_SLOTS_PER_EPOCH
+        self.epoch_duration_seconds = EPOCH_DURATION_SECONDS
+
+    def to_dict(self) -> dict:
+        return {
+            "batchAttestor": self.batch_attestor,
+            "clawController": self.claw_controller,
+            "viscosityOracle": self.viscosity_oracle,
+            "maxSlotsPerEpoch": self.max_slots_per_epoch,
+            "epochDurationSeconds": self.epoch_duration_seconds,
